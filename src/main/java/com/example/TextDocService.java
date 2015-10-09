@@ -74,7 +74,7 @@ public class TextDocService {
 	}
 	
 	protected void beginCampaign(Campaign campaign) {
-		campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
+		//campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
 	}
 	
 	protected String generatePin() {
