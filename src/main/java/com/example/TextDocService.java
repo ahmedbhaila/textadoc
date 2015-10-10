@@ -75,6 +75,9 @@ public class TextDocService {
 	
 	protected void beginCampaign(Campaign campaign) {
 		//campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
+		
+		// mark sent to true
+		campaign.getRecipients().forEach(r -> redisTemplate.opsForHash().put(CURRENT_CAMPAIGN + ":" + r.getNumber(), "sent", "true"));
 	}
 	
 	protected String generatePin() {
@@ -92,11 +95,11 @@ public class TextDocService {
 		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":" + phone, "pin");
 		if(recipientPin.equals(pin)) {
 			// pin is a match: send document link
-			whispirService.sendSMS(phone, "REPLACE_ME", null, messageBody.replace(URL, redisTemplate.opsForValue().get(CURRENT_CAMPAIGN + ":url")));
+			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, messageBody.replace(URL, redisTemplate.opsForValue().get(CURRENT_CAMPAIGN + ":url")));
 		}
 		else {
 			// send error message to this user
-			whispirService.sendSMS(phone, "ERROR_MESSAGE_TEMPLATE", null, errorBody);
+			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
 		}
 	}
 }
