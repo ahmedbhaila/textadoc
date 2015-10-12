@@ -3,12 +3,15 @@ package com.example;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 @Controller
@@ -20,6 +23,7 @@ public class TextADocController {
 	WhispirService whispirService;
 	
 	@RequestMapping("/textadoc/recipients")
+	@ResponseBody
 	public List<Recipient> getRecipients() {
 		return whispirService.getRecipients();
 	}
@@ -29,12 +33,29 @@ public class TextADocController {
 		textDocService.setupCampaign(campaign);
 	}
 	
+	@RequestMapping(value = "/textadoc/campaign/{campaign}/begin")
+	@ResponseStatus(value = HttpStatus.OK)
+	public void beginCampaign(@PathVariable("campaign") String campaign) {
+		textDocService.beginCampaign(campaign);
+	}
+	
 	// for testing only
 	@RequestMapping("/textadoc/campaign")
 	@ResponseBody
 	public Campaign getCampaign() {
+		//textDocService.scheduleTask("2015-10-12T02:25:00Z");
 		return whispirService.getCampaign();
 	}
+	
+	// for testing only
+	@RequestMapping("/textadoc/sched/{date_time}/{url}")
+	@ResponseBody
+	public String schedule(@PathVariable("date_time") String dateTime, @PathVariable("url") String url) throws Exception {
+		return "true";
+	}
+	
+	
+	
 	@RequestMapping("/textadoc/notification")
 	public String sendTextNotification() {
 		//textDocService.sendDocumentNotification(number, name);

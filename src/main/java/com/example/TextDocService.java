@@ -1,8 +1,15 @@
 package com.example;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.TaskScheduler;
 
 public class TextDocService {
 	
@@ -14,6 +21,7 @@ public class TextDocService {
 	private static final String NAME = "{name}";
 	private static final String URL = "{url}";
 	private static final String PIN = "{pin}";
+	private static final String CAMPAIGN = "{campaign}";
 	
 	@Autowired
 	RedisTemplate<String, String> redisTemplate;
@@ -27,8 +35,15 @@ public class TextDocService {
 	@Value("${error.message.body}")
 	String errorBody;
 	
+	@Value("${schedule.service.url}")
+	String serviceUrl;
+	
 	@Autowired
 	WhispirService whispirService;
+	
+	@Autowired
+	TaskScheduler scheduler;
+	
 	
 	public void setDocToSend(String url) {
 		redisTemplate.opsForValue().set(DOC_KEY, url);
@@ -45,13 +60,8 @@ public class TextDocService {
 		
 		String campaignName = campaign.getName();
 		
-		// assuming campaign will be pushed now!
-		
-		// set current campaign to this one
-		redisTemplate.opsForValue().set(CURRENT_CAMPAIGN, campaignName);
-		
 		// set document url for this campaign
-		redisTemplate.opsForValue().set(CURRENT_CAMPAIGN + ":url", campaign.getFileURL());
+		redisTemplate.opsForValue().set(campaignName + ":url", campaign.getFileURL());
 		
 		// generate PIN for each recipient
 		campaign.getRecipients().forEach(r -> r.setPin(generatePin()));
@@ -60,24 +70,78 @@ public class TextDocService {
 		campaign.getRecipients().forEach(
 				r -> {
 					// store all props
-					String recipientKey = campaignName + ":" + r.getNumber();
+					String recipientKey = campaignName + ":recipient:" + r.getNumber();
 					redisTemplate.opsForHash().put(recipientKey, "name", r.getName());
 					redisTemplate.opsForHash().put(recipientKey, "pin", r.getPin());
 					redisTemplate.opsForHash().put(recipientKey, "retrieved", "false");
 					redisTemplate.opsForHash().put(recipientKey, "sent", "false");
+					redisTemplate.opsForHash().put(recipientKey, "phone", r.getNumber());
 				}
 		);
 		
-		// begin campaign
-		beginCampaign(campaign);
+		// Schedule if available
+		if(campaign.getStartDate() != null) {
+			try{
+				//tempService.schedule(campaign.getStartDate(), URLEncoder.encode(serviceUrl.replace(CAMPAIGN, campaignName), "UTF-8"));
+				//UriUtils.encodeHttpUrl(serviceUrl.replace(CAMPAIGN, campaignName), "UTF-8");
+				//tempService.schedule(campaign.getStartDate(), serviceUrl.replace(CAMPAIGN, campaignName));
+				scheduleTask(campaign.getStartDate(), campaign.getName());
+
+			}
+			catch(Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		else {
+			
+			// set current campaign to this one
+			redisTemplate.opsForValue().set(CURRENT_CAMPAIGN, campaignName);
+			
+			// begin campaign
+			beginCampaign(campaign);
+			
+		}
 		
 	}
 	
 	protected void beginCampaign(Campaign campaign) {
-		//campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
+		campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
 		
 		// mark sent to true
-		campaign.getRecipients().forEach(r -> redisTemplate.opsForHash().put(CURRENT_CAMPAIGN + ":" + r.getNumber(), "sent", "true"));
+		String currentCampaign = (String) redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
+		campaign.getRecipients().forEach(r -> redisTemplate.opsForHash().put(currentCampaign + ":" + r.getNumber(), "sent", "true"));
+	}
+	
+	public void beginCampaign(String campaign) {
+		// set current campaign to this one
+		redisTemplate.opsForValue().set(CURRENT_CAMPAIGN, campaign);
+		
+		beginCampaign(getCampaign(campaign));
+	}
+	
+	private Campaign getCampaign(String campaign) {
+		Campaign c = new Campaign();
+		c.setFileURL((String)redisTemplate.opsForValue().get(campaign + ":url"));
+		c.setName(campaign);
+		
+		// get recipients
+		List<Recipient> recipients = new ArrayList<Recipient>();
+		Set<String> recipientKeys = redisTemplate.keys(campaign + ":recipient:*");
+		recipientKeys.forEach(k -> {
+			Recipient recp = new Recipient();
+			
+			recp.setNumber((String) redisTemplate.opsForHash().get(k, "phone"));
+			recp.setName((String)redisTemplate.opsForHash().get(k, "name"));
+			recp.setPin((String)redisTemplate.opsForHash().get(k, "pin"));
+			recp.setRetrieved(Boolean.valueOf((String)redisTemplate.opsForHash().get(k, "retrieved")));
+			recp.setSent(Boolean.valueOf((String)redisTemplate.opsForHash().get(k, "sent")));
+			
+			recipients.add(recp);
+			
+			
+		});
+		c.setRecipients(recipients);
+		return c;
 	}
 	
 	protected String generatePin() {
@@ -92,7 +156,7 @@ public class TextDocService {
 		String currentCampaign = redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
 		
 		// check pin for this recipient
-		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":" + phone, "pin");
+		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
 		if(recipientPin.equals(pin)) {
 			// pin is a match: send document link
 			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, messageBody.replace(URL, redisTemplate.opsForValue().get(CURRENT_CAMPAIGN + ":url")));
@@ -101,5 +165,19 @@ public class TextDocService {
 			// send error message to this user
 			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
 		}
+	}
+	
+	public void scheduleTask(String date, String campaign) {
+		DateTime dateTime = ISODateTimeFormat.dateTimeParser().parseDateTime(date);
+
+		scheduler.schedule(new Runnable() {
+			
+			@Override
+			public void run() {
+				System.out.println("I was called"); // for testing, remove when done
+				
+				beginCampaign(campaign);
+			}
+		}, dateTime.toDate());
 	}
 }

@@ -10,6 +10,8 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
@@ -69,6 +71,11 @@ public class TextADocApplication {
 		http.setConnectionRequestTimeout(0);
 		http.setReadTimeout(0);
 		return http;
+	}
+	
+	@Bean
+	public TaskScheduler taskScheduler() {
+		return new ThreadPoolTaskScheduler();
 	}
 
 }
