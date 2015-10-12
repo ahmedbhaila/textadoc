@@ -1,6 +1,7 @@
 package com.example;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,9 @@ public class TextADocController {
 	
 	@Autowired
 	WhispirService whispirService;
+	
+	@Autowired
+	DropboxService dropBox;
 	
 	@RequestMapping("/textadoc/recipients")
 	@ResponseBody
@@ -54,6 +58,11 @@ public class TextADocController {
 		return "true";
 	}
 	
+	@RequestMapping("/textadoc/dropbox")
+	@ResponseBody
+	public String dropbox() {
+		return dropBox.getAuthUrl();
+	}
 	
 	
 	@RequestMapping("/textadoc/notification")
@@ -74,5 +83,12 @@ public class TextADocController {
 	public void handleCallback(@RequestBody WhispirCallbackMessage message, @RequestParam(required=false, defaultValue="false", value="auth") String auth) {
 		//System.out.println("call backed" + message.toString());
 		//rabbitTemplate.convertAndSend("WhispirMessageQueue", message);
+	}
+	
+	@RequestMapping(value="/textadoc/dropbox/callback")
+	@ResponseBody
+	public String handleDropboxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
+		//allRequestParams.forEach((k,v) -> System.out.println("k" + k + ":" + v));
+		return dropBox.handleCallback(allRequestParams);
 	}
 }

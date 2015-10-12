@@ -1,8 +1,10 @@
 package com.example;
 
 import java.net.URI;
+import java.util.Locale;
 
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -14,12 +16,28 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
+import com.dropbox.core.DbxAppInfo;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.DbxWebAuth;
+import com.dropbox.core.DbxWebAuthNoRedirect;
+
 @SpringBootApplication
 public class TextADocApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TextADocApplication.class, args);
     }
+    
+    @Value("${dropbox.app.key}")
+    String dropboxAppKey;
+    
+    
+    @Value("${dropbox.app.secret}")
+    String dropboxAppSecret;
+    
+    @Value("")
+    String redirectUrl;
+    
     
     @Bean
 	public JedisConnectionFactory jedisConnectionFactory() throws Exception {
@@ -76,6 +94,17 @@ public class TextADocApplication {
 	@Bean
 	public TaskScheduler taskScheduler() {
 		return new ThreadPoolTaskScheduler();
+	}
+	
+	@Bean
+	public DbxAppInfo dropBoxApp() {
+		DbxAppInfo dbxInfo = new DbxAppInfo(dropboxAppKey, dropboxAppSecret);
+		return dbxInfo;
+	}
+	
+	@Bean
+	public DropboxService dropboxService() {
+		return new DropboxService();
 	}
 
 }
