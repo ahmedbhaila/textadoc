@@ -1,9 +1,11 @@
 package com.example;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +28,9 @@ public class TextADocController {
 	@Autowired
 	DropboxService dropBox;
 	
+	@Autowired
+	BoxService boxService;
+	
 	@RequestMapping("/textadoc/recipients")
 	@ResponseBody
 	public List<Recipient> getRecipients() {
@@ -33,7 +38,7 @@ public class TextADocController {
 	}
 	
 	@RequestMapping(value = "/textadoc/campaign", method = RequestMethod.POST)
-	public void setupCampaign(@RequestBody Campaign campaign) {
+	public void setupCampaign(@RequestBody Campaign campaign) throws Exception {
 		textDocService.setupCampaign(campaign);
 	}
 	
@@ -87,8 +92,37 @@ public class TextADocController {
 	
 	@RequestMapping(value="/textadoc/dropbox/callback")
 	@ResponseBody
-	public String handleDropboxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
+	public void handleDropboxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
 		//allRequestParams.forEach((k,v) -> System.out.println("k" + k + ":" + v));
-		return dropBox.handleCallback(allRequestParams);
+		dropBox.handleCallback(allRequestParams);
+		//return dropBox.getListings();
 	}
+	
+	@RequestMapping(value="/textadoc/dropbox/files")
+	@ResponseBody
+	public List<String> handleDropboxCallback() throws Exception {
+		return dropBox.getListings();
+	}
+	
+	@RequestMapping(value="/textadoc/box/callback")
+	@ResponseBody
+	public void handleBoxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
+		//allRequestParams.forEach((k,v) -> System.out.println("k" + k + ":" + v));
+		boxService.handleCallback(allRequestParams.get("code"), allRequestParams.get("state"));
+		//return dropBox.getListings();
+	}
+	
+	@RequestMapping(value = "/textadoc/box/files")
+	@ResponseBody
+	public List<BoxFileData> getFiles(){
+		return boxService.getFiles();
+	}
+	
+	@RequestMapping("/textadoc/file/{file:.+}")
+	@ResponseBody
+	public FileSystemResource getFile(@PathVariable("file") String file) throws Exception {
+		dropBox.downloadFile(file);
+		return new FileSystemResource(new File(file));
+	}
+	
 }

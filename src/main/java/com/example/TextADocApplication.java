@@ -106,5 +106,10 @@ public class TextADocApplication {
 	public DropboxService dropboxService() {
 		return new DropboxService();
 	}
+	
+	@Bean
+	public BoxService boxService() {
+		return new BoxService();
+	}
 
 }

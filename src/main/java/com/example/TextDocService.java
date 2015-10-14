@@ -22,6 +22,7 @@ public class TextDocService {
 	private static final String URL = "{url}";
 	private static final String PIN = "{pin}";
 	private static final String CAMPAIGN = "{campaign}";
+	private static final String FILENAME = "{filename}";
 	
 	@Autowired
 	RedisTemplate<String, String> redisTemplate;
@@ -38,11 +39,19 @@ public class TextDocService {
 	@Value("${schedule.service.url}")
 	String serviceUrl;
 	
+	@Value("${host.url}")
+	String hostUrl;
+	
 	@Autowired
 	WhispirService whispirService;
 	
 	@Autowired
 	TaskScheduler scheduler;
+	
+	@Autowired
+	DropboxService dropboxService;
+	
+	
 	
 	
 	public void setDocToSend(String url) {
@@ -56,12 +65,14 @@ public class TextDocService {
 		whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, messageBody);
 	}
 	
-	public void setupCampaign(Campaign campaign) {
+	public void setupCampaign(Campaign campaign) throws Exception {
 		
 		String campaignName = campaign.getName();
 		
 		// set document url for this campaign
-		redisTemplate.opsForValue().set(campaignName + ":url", campaign.getFileURL());
+		
+		//redisTemplate.opsForValue().set(campaignName + ":url", dropboxService.getFileLink(campaign.getFileURL()));
+		redisTemplate.opsForValue().set(campaignName + ":url", hostUrl.replace(FILENAME,campaign.getFileURL()));
 		
 		// generate PIN for each recipient
 		campaign.getRecipients().forEach(r -> r.setPin(generatePin()));
