@@ -91,7 +91,7 @@ public class TextDocService {
 		);
 		
 		// Schedule if available
-		if(campaign.getStartDate() != null) {
+		if(campaign.getStartDate() != null && !campaign.getStartDate().equals("")) {
 			try{
 				//tempService.schedule(campaign.getStartDate(), URLEncoder.encode(serviceUrl.replace(CAMPAIGN, campaignName), "UTF-8"));
 				//UriUtils.encodeHttpUrl(serviceUrl.replace(CAMPAIGN, campaignName), "UTF-8");

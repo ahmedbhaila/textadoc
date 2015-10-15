@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<meta charset="utf-8">
+
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.css" />
+<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+
+<script src="js/jquery.datetimepicker.full.min.js"></script>
+
+
+<!--  <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete" async defer></script>
+  -->
+        
+<!-- <!-- Latest compiled and minified CSS -->
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
+
+<!-- Optional theme -->
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
+
+<!-- Latest compiled and minified JavaScript -->
+<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
+<!--   
+-->
+
+<link href="css/jquery.datetimepicker.css"></link>
+
+<title>Text A Doc</title>
+
+
+<script type="text/javascript">
+	
+	var recipients = [];
+	var autocomplete;
+	var monuments_desc_id = 0;
+	
+	
+	function getRecipients() {
+		var url = "/textadoc/recipients";
+		$.mobile.loading("show");
+		$.get(url, function(data) {
+			console.log(data);
+			recipients = data;
+			callback(data)
+		})
+		.always(function() {
+			 $.mobile.loading("hide");
+		});
+		
+	}
+
+	function callback(results) {
+		console.log(results.length);
+		$("#recipients").html('');
+		for (var i = 0; i < results.length; i++) {
+// 			var item = 
+// 					'<div  class="ui-block-a"> <label><input type="checkbox" name="checkbox[]" '+ (results[i].tagged ?'disabled="disabled" checked="checked"' : '') +'/>'+results[i].name+'</label></div>'+
+// 	            	'<div  class="ui-block-b"> <a id="desc_'+i+'" href="#popup" data-transition="pop" data-rel="dialog" class="ui-btn ui-icon-info ui-btn-icon-notext ui-corner-all">No text</a></div>';
+			
+			var item = 
+					'<div  class="ui-block-a"> <label><input type="checkbox" name="checkbox[]" />'+results[i].name+'</label></div>';
+			
+			$("#recipients").append(item);
+		}
+		
+		$(".campaign-list").trigger('create');
+		//$("[type=checkbox]").checkboxradio();
+		//$("[data-role=controlgroup]").controlgroup("refresh");
+	}
+	
+	
+	$( document ).ready(function() {
+		getRecipients();
+	
+// 		$("#places").on('click','.ui-btn-icon-notext',function(){
+// 			monuments_desc_id = this.id;
+// 			var id = monuments_desc_id.split('_')[1];
+// 			$("#txt_description").val(monuments[id].url);
+// 		});
+		
+// 		$('.ui-btn-icon-notext').click(function(){
+// 			console.log(this.id);
+// 		});
+		  
+
+// 		$('#srch-term').keydown(function(e) {
+// 			if (e.keyCode == 13) {
+// 				e.preventDefault();
+// 				$("#btn_search").click();
+// 			}
+// 		})
+
+// 		$("#btn_search").click(function() {
+// 			var url = "/places/search/" + $("#srch-term").val();
+// 			$.get(url, function(data) {
+// 				console.log(data);
+// 				callback(data);
+// 			});
+// 			return true;
+// 		});
+	
+		
+		
+		
+		
+		$("#tag").click(function(){
+			
+			var data = [];
+			for (i = 0; i < $("[type=checkbox]").length; i++) {
+				if ($("[type=checkbox]")[i].checked /* && !$("[type=checkbox]")[i].disabled */) {
+					console.log(recipients[i]);
+					data.push(recipients[i]);
+				}
+			}
+			
+			if(data.length > 0)
+			{
+				$.mobile.loading("show");
+				
+				var campaign = {					
+					name : $('#text-campaign-name').val(),
+					startDate : $('#text-date').val(),
+					fileURL : $('#text-file-url').val(),
+					recipients : data
+				};
+				
+				$.ajax({
+					  type: "POST",
+					  url: "/textadoc/campaign",
+					  contentType: "application/json; charset=utf-8",
+					  dataType: "json",
+					  data: JSON.stringify(campaign),
+					  
+					  
+					})
+					.success( function(response){
+						  console.log(response);
+						  					 
+					})
+					.always(function(response) {
+						console.log(response);						
+						$.mobile.loading("hide");
+						
+// 						if(response.status == 200)
+// 							getRecipients(lat_lng);
+					});
+			}
+			
+			return false;
+
+		});
+
+	});
+
+// 	function initAutocomplete() {
+		
+// 		  autocomplete = new google.maps.places.Autocomplete(document.getElementById('text-search'),{types: ['geocode']});
+		  
+// 		  // When the user selects an address from the dropdown, populate the address
+// 		  // fields in the form.
+// 		  autocomplete.addListener('place_changed', getPlaceDetail);
+// 		}
+
+// 		function getPlaceDetail() {
+// 		  // Get the place details from the autocomplete object.
+// 		  var place = autocomplete.getPlace();
+// 		  lat_lng = place.geometry.location.lat()+","+place.geometry.location.lng();
+		  
+// 		  getRecipients(lat_lng);
+// 		}
+	
+	
+	jQuery('#datetimepicker').datetimepicker();
+	
+</script>
+
+
+<style>
+.monuments .ui-controlgroup-controls {
+	float: none;
+}
+
+.ui-header
+{
+	background-color: #38c !important;
+	color: black !important;
+}
+.ui-grid-a .ui-block-a {
+    width: 90% !important;
+}
+
+.ui-grid-a .ui-block-b {
+    width: 20px !important;    
+}
+</style>
+
+
+</head>
+<body>
+
+
+
+	<div data-role="page" data-theme="a">
+
+	<div data-role="header">
+		<h1>Text A Doc</h1>
+	</div>
+	
+	<div data-role="content" data-theme="a">	
+		<hr/>
+			<input name="text-campaign-name" id="text-campaign-name" value="" placeholder="Enter Campaign Name" type="text">
+			<input name="text-file-url" id="text-file-url" value="" placeholder="Enter File URL" type="text">
+			<input name="text-date" id="text-date" value="" placeholder="Enter Schedule Date" data-role="date" type="time">			
+		<hr/>
+		<div class="recipients-list" data-role="fieldcontain" align="center">
+		
+			<div class="ui-grid-a" id="recipients">
+				<!-- <div  class="ui-block-a" >
+	                <label><input type='checkbox' name='checkbox[]' />df dsfdsf ds</label>
+	            </div>
+	            <div  class="ui-block-b" >                        
+	                <a href="#popup" data-transition="pop" data-rel="dialog" class="ui-btn ui-icon-info ui-btn-icon-notext ui-corner-all">No text</a>						
+	            </div> -->			
+			</div>
+			<br/><hr/>
+			<button id="tag" data-inline="true" data-theme="a" data-icon="check">Create Campaign</button>	
+			<hr/>	
+		</div>
+	</div>
+	
+	
+
+</div>
+
+
+<div id="popup" data-role="dialog" data-url="popup" data-close-btn="right">
+	<div data-role="header"><h3>Monument Description</h3></div>
+	<div role="main" class="ui-content">
+		<textarea placeholder="Enter URL or description" cols="40" rows="8" name="textarea" id="txt_description"></textarea>
+	</div>
+	<div data-role="footer">
+		<a href="#" id="save_button" data-rel="back" data-inline="true" data-theme="a" data-icon="check">Save</a>
+	    <a href="#" id="cancel_button" data-rel="back" data-inline="true" data-theme="a" data-icon="back">Cancel</a>
+	</div>
+</div>	
+		
+
+
+</body>
+
+</html>

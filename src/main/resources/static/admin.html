@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1"> 
+<meta charset="utf-8">
+
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css"></link>
+<script src="js/jquery.datetimepicker.full.min.js"></script>
+
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+
+<title>Text A Doc</title>
+
+<style type="text/css">
+.bs-example {
+    border-color: #e5e5e5 #eee #eee;
+    border-style: solid;
+    border-width: 1px 0;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05) inset;
+    margin: 0 0px 15px;
+    padding: 45px 15px 15px;
+    position: relative;
+}
+.bs-example::after {
+    color: #959595;
+    content: "Contacts";
+    font-size: 12px;
+    font-weight: 700;
+    left: 15px;
+    letter-spacing: 1px;
+    position: absolute;
+    text-transform: uppercase;
+    top: 15px;
+}
+.bs-example-padded-bottom {
+    padding-bottom: 24px;
+}
+.bs-example + .highlight, .bs-example + .zero-clipboard + .highlight {
+    border-radius: 0;
+    border-width: 0 0 1px;
+    margin: -15px -15px 15px;
+}
+</style>
+
+</head>
+<body>
+
+<!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <h1>Share  Doc</h1>
+        </div>
+        
+      </div>
+    </nav>
+
+    <!-- Begin page content -->
+    <div class="container">
+      <div class="page-header">
+        
+      </div>
+      <hr/>
+      
+      <div class="input-group">
+		  <span class="input-group-addon" id="basic-addon1">User Name</span>
+		  <input name="text-campaign-name" id="text-campaign-name" type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+	  </div>
+	  
+	  <div class="input-group">
+		  <span class="input-group-addon" id="basic-addon1">Campaign Name</span>
+		  <input name="text-campaign-name" id="text-campaign-name"  type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
+	  </div>
+	  
+	  <div class="input-group">
+		  <span class="input-group-addon" id="basic-addon1">File URL</span>
+		  <input name="text-file-url" id="text-file-url" type="text" class="form-control" placeholder="File URL" aria-describedby="basic-addon1">
+	  </div>
+	  
+	  <div class="input-group">
+		  <span class="input-group-addon" id="basic-addon1">Schedule Time</span>
+		  <input name="text-date" id="text-date" type="text" class="form-control" placeholder="Schedule Time" aria-describedby="basic-addon1">
+	  </div>
+			
+		
+		<div class='bs-example' id="recipients">
+
+		    
+		</div>
+			
+		
+			<button id="tag" class="btn btn-default">Create Campaign</button>	
+		<hr/>	
+			
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted"></p>
+      </div>
+    </footer>
+		
+
+
+<script type="text/javascript">
+	
+	var recipients = [];
+	var autocomplete;
+	var monuments_desc_id = 0;
+	
+	$('#text-date').datetimepicker(); 
+	
+	function getRecipients() {
+		var url = "/textadoc/recipients";
+		$.get(url, function(data) {
+			console.log(data);
+			recipients = data;
+			callback(data)
+		})
+		.always(function() {
+			 
+		});
+		
+	}
+
+	function callback(results) {
+		console.log(results.length);
+		$("#recipients").html('');
+		for (var i = 0; i < results.length; i++) {			
+			//var item = 
+			//		'<div> <label><input type="checkbox" name="checkbox[]" />'+results[i].name+'</label></div>';
+			
+			//var item = '<li class="list-group-item"><input type="checkbox" name="checkbox[]" />'+results[i].name+'</li>';
+			
+			var item = ''+
+				'<div class="input-group">'+
+			      '<span class="input-group-addon">'+
+			        '<input type="checkbox">'+
+			      '</span>'+
+			      '<input type="text" class="form-control" style="background-color: white;" value="'+results[i].name+'" readonly>'+
+			    '</div>';
+			    
+			$("#recipients").append(item);
+		}
+		
+	}
+	
+	
+	$(document).ready(function() {
+		getRecipients();
+	});
+	
+		
+		
+		
+		$("#tag").click(function(){
+			
+			var data = [];
+			for (i = 0; i < $("[type=checkbox]").length; i++) {
+				if ($("[type=checkbox]")[i].checked /* && !$("[type=checkbox]")[i].disabled */) {
+					console.log(recipients[i]);
+					data.push(recipients[i]);
+				}
+			}
+			
+			if(data.length > 0)
+			{
+				
+				var campaign = {					
+					name : $('#text-campaign-name').val(),
+					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
+					fileURL : $('#text-file-url').val(),
+					recipients : data
+				};
+				
+				$.ajax({
+					  type: "POST",
+					  url: "/textadoc/campaign",
+					  contentType: "application/json; charset=utf-8",
+					  dataType: "json",
+					  data: JSON.stringify(campaign),
+					  
+					  
+					})
+					.success( function(response){
+						  console.log(response);
+						  					 
+					})
+					.always(function(response) {
+						console.log(response);					
+					});
+			}
+			
+			return false;
+
+		});
+	
+</script>
+
+
+
+</body>
+
+</html>

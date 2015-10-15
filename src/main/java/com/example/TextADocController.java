@@ -38,6 +38,7 @@ public class TextADocController {
 	}
 	
 	@RequestMapping(value = "/textadoc/campaign", method = RequestMethod.POST)
+	@ResponseBody
 	public void setupCampaign(@RequestBody Campaign campaign) throws Exception {
 		textDocService.setupCampaign(campaign);
 	}
