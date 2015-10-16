@@ -16,7 +16,9 @@ public class TextDocService {
 	private static final String CURRENT_CAMPAIGN = "campaign:current";
 	private static final String DOC_KEY = "doc:current";
 	private static final String DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID = "6EB29D0028104507";
-	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TourGuideCallback test";
+	
+	//private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TourGuideCallback test";
+	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TextADoc local";
 	
 	private static final String NAME = "{name}";
 	private static final String URL = "{url}";
@@ -59,10 +61,10 @@ public class TextDocService {
 	}
 	
 	public void sendDocumentNotification(String number, String name, String pin) {
-		messageBody = messageBody.replace(NAME, name);
-		messageBody = messageBody.replace(PIN, pin);
+		String message = messageBody.replace(NAME, name);
+		message = messageBody.replace(PIN, pin);
 		
-		whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, messageBody);
+		whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, message);
 	}
 	
 	public void setupCampaign(Campaign campaign) throws Exception {
@@ -169,8 +171,10 @@ public class TextDocService {
 		// check pin for this recipient
 		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
 		if(recipientPin.equals(pin)) {
+			
 			// pin is a match: send document link
-			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, messageBody.replace(URL, redisTemplate.opsForValue().get(CURRENT_CAMPAIGN + ":url")));
+			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
+					urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
 		}
 		else {
 			// send error message to this user

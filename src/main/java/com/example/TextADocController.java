@@ -77,18 +77,20 @@ public class TextADocController {
 		return "true";
 	}
 	
-	@RequestMapping(value="/handleCallback", method = RequestMethod.GET)
+	@RequestMapping(value="/textadoc/whispir/callback", method = RequestMethod.GET)
 	@ResponseBody
 	public void handleCallback(@RequestParam(required=false, defaultValue="false", value="auth") String auth) {
 		System.out.println("call backed");
 	}
 	
-	@RequestMapping(value="/handleCallback", method = RequestMethod.POST)
+	@RequestMapping(value="/textadoc/whispir/callback", method = RequestMethod.POST)
 	@ResponseBody
 	// @RequestBody WhispirCallbackMessage message
 	public void handleCallback(@RequestBody WhispirCallbackMessage message, @RequestParam(required=false, defaultValue="false", value="auth") String auth) {
 		//System.out.println("call backed" + message.toString());
 		//rabbitTemplate.convertAndSend("WhispirMessageQueue", message);
+		textDocService.handleResponse(message);
+		
 	}
 	
 	@RequestMapping(value="/textadoc/dropbox/callback")
