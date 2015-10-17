@@ -12,10 +12,11 @@
 
 
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"> -->
+<link rel="stylesheet" href="css/bootstrap.css">
 
 <!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
@@ -58,10 +59,10 @@
 <body>
 
 <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top">
-      <div class="container">
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
         <div class="navbar-header">
-          <h1>Share  Doc</h1>
+          <h1 class="navbar-brand">Share  Doc</h1>
         </div>
         
       </div>
@@ -69,44 +70,71 @@
 
     <!-- Begin page content -->
     <div class="container">
-      <div class="page-header">
-        
-      </div>
-      <hr/>
-      
-      <div class="input-group">
-		  <span class="input-group-addon" id="basic-addon1">User Name</span>
-		  <input name="text-campaign-name" id="text-campaign-name" type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
-	  </div>
-	  
-	  <div class="input-group">
-		  <span class="input-group-addon" id="basic-addon1">Campaign Name</span>
-		  <input name="text-campaign-name" id="text-campaign-name"  type="text" class="form-control" placeholder="Username" aria-describedby="basic-addon1">
-	  </div>
-	  
-	  <div class="input-group">
-		  <span class="input-group-addon" id="basic-addon1">File URL</span>
-		  <input name="text-file-url" id="text-file-url" type="text" class="form-control" placeholder="File URL" aria-describedby="basic-addon1">
-	  </div>
-	  
-	  <div class="input-group">
-		  <span class="input-group-addon" id="basic-addon1">Schedule Time</span>
-		  <input name="text-date" id="text-date" type="text" class="form-control" placeholder="Schedule Time" aria-describedby="basic-addon1">
-	  </div>
-			
-		
-		<div class='bs-example' id="recipients">
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="well bs-component">
+					<div class="form-horizontal">
 
-		    
+						<div class="form-group">
+							<label class="col-lg-4 control-label" for="text-campaign-name">User
+								Name</label>
+							<div class="col-lg-8">
+								<input name="text-campaign-name" id="text-campaign-name"
+									type="text" placeholder="Username" class="form-control">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-lg-4 control-label" for="text-campaign-name">Campaign
+								Name</label>
+							<div class="col-lg-8">
+								<input name="text-campaign-name" id="text-campaign-name"
+									type="text" class="form-control" placeholder="Username"
+									class="form-control">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-lg-4 control-label" for="text-date">Schedule
+								Time</label>
+							<div class="col-lg-8">
+								<input name="text-date" id="text-date" type="text"
+									class="form-control" placeholder="Schedule Time"
+									class="form-control">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-lg-4 control-label" for="ddlFiles">File
+								URL</label>
+							<div class="col-lg-8">
+								<select name="ddlFiles" id="ddlFiles" class="form-control">
+
+								</select>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<div class='bs-example col-lg-offset-2' id="recipients"></div>
+	
+							<div class="col-lg-8">
+						</div>
+												
+						<div class="form-group">
+                    <div class="col-lg-6 col-lg-offset-4">
+                      <button id="tag" class="btn btn-primary">Create Campaign</button>
+                    </div>
+                  </div>
+                  
+                  
+						
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-			
-		
-			<button id="tag" class="btn btn-default">Create Campaign</button>	
-		<hr/>	
-			
-    </div>
-
-    <footer class="footer">
+	</div>
+		<footer class="footer">
       <div class="container">
         <p class="text-muted"></p>
       </div>
@@ -121,6 +149,27 @@
 	var monuments_desc_id = 0;
 	
 	$('#text-date').datetimepicker(); 
+	
+	
+	function getDropboxFiles() {
+		var url = "/textadoc/dropbox/files";
+		$.get(url, function(data) {
+			console.log(data);
+			
+			$.each(data, function(fileName, key) {
+			    var option = new Option(key, fileName);
+			    $('#ddlFiles').append($(option));
+			});
+			
+			
+			
+
+		})
+		.always(function() {
+			 
+		});
+		
+	}
 	
 	function getRecipients() {
 		var url = "/textadoc/recipients";
@@ -159,6 +208,7 @@
 	
 	
 	$(document).ready(function() {
+		getDropboxFiles();
 		getRecipients();
 	});
 	
@@ -181,7 +231,8 @@
 				var campaign = {					
 					name : $('#text-campaign-name').val(),
 					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
-					fileURL : $('#text-file-url').val(),
+					//fileURL : $('#ddlFiles').val(),
+					fileURL : $('#ddlFiles option:selected').text();
 					recipients : data
 				};
 				
