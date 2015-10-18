@@ -128,4 +128,11 @@ public class TextADocController {
 		return new FileSystemResource(new File(file));
 	}
 	
+	@RequestMapping("/textadoc/voice")
+	@ResponseBody
+	public String testVoiceCall() {
+		whispirService.sendVoiceCall("17732304340", "TextADoc local");
+		return "true";
+	}
+	
 }

@@ -82,7 +82,7 @@ public class WhispirService {
 		return recps;
 	}
 	
-	public void sendVoiceCall(String phoneNumber) {
+	public void sendVoiceCall(String phoneNumber, String callbackId) {
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Content-Type", "application/vnd.whispir.message-v1+json");
@@ -93,12 +93,13 @@ public class WhispirService {
 		request.put("messageTemplateName", messageTemplateName);
 		JSONObject voiceRequest = new JSONObject();
 		
-		voiceRequest.put("header", "This is the introduction, read out prior to any key press");
+		voiceRequest.put("header", "Text a Document");
 		voiceRequest.put("type", "ConfCall:,ConfAccountNo:,ConfPinNo:,ConfModPinNo:,Pin:");
 		
-		voiceRequest.put("body", "Chicago  is the third most populous city in the United States. With over 2.7 million residents, it is the most populous city " + 
-		"in the state of Illinois and the Midwest. The Chicago metropolitan area, often referred to as Chicagoland, is home to nearly 10 million people and " + 
-				"is the third-largest in the U.S.[4] Chicago is the seat of Cook County");
+		voiceRequest.put("body", "You have been selected to recieve a file");
+		if(callbackId != null) {
+			request.put("callbackId", callbackId);
+		}
 
 		request.put("voice", voiceRequest);
 		HttpEntity<String> entity = new HttpEntity<String>(request.toJSONString(), headers);

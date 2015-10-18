@@ -168,18 +168,38 @@ public class TextDocService {
 		// get current campaign
 		String currentCampaign = redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
 		
-		// check pin for this recipient
-		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
-		if(recipientPin.equals(pin)) {
-			
-			// pin is a match: send document link
-			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
-					urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+		// check for voice call 
+		if(message.getResponseMessage().getChannel().equals("Voice")){
+			// check for response == 2
+			if(pin.equals("2")) {
+				// pin is a match: send document link
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
+						urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+			}
+			else {
+				// send error message to this user
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+			}
 		}
-		else {
-			// send error message to this user
-			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+		else{
+			// this is a text message source
+			// check pin for this recipient
+			String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
+			if(recipientPin.equals(pin)) {
+				
+				// pin is a match: send document link
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
+						urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+			}
+			else {
+				// send error message to this user
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+			}
 		}
+		
+		
+		
+		
 	}
 	
 	public void scheduleTask(String date, String campaign) {
