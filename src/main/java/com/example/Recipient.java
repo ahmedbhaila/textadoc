@@ -7,7 +7,14 @@ public class Recipient {
 	protected boolean retrieved;
 	protected String retrievalDate;
 	protected String pin;
+	protected String notification;
 	
+	public String getNotification() {
+		return notification;
+	}
+	public void setNotification(String notification) {
+		this.notification = notification;
+	}
 	public boolean isSent() {
 		return sent;
 	}

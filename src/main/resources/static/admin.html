@@ -61,6 +61,11 @@
     border-width: 0 0 1px;
     margin: -15px -15px 15px;
 }
+
+.contact{
+    padding-left: 0;
+}
+
 </style>
 
 </head>
@@ -122,24 +127,6 @@
 								<select name="ddlFiles" id="ddlFiles" class="form-control"></select>
 							</div>
 						</div>
-
-
-
-
-						<div class="form-group">
-							<label class="col-lg-4 control-label">Radios</label>
-							<div class="col-lg-8">
-								<div class="radio">
-									<label><input type="radio" checked="checked" value="SMS" name="notification-option" id="option-sms">SMS</label>
-								</div>
-								<div class="radio">
-									<label><input type="radio" value="Call" name="notification-option" id="option-call">Call</label>
-								</div>
-							</div>
-						</div>
-
-
-
 
 						<div class="form-group">
 							<div class='bs-example col-lg-offset-4' id="recipients"></div>
@@ -232,11 +219,19 @@
 				//var item = '<li class="list-group-item"><input type="checkbox" name="checkbox[]" />'+results[i].name+'</li>';
 
 				var item = ''
-						+ '<div class="input-group col-lg-offset-4 col-lg-8">'
-						+ '<span class="input-group-addon">'
-						+ '<input type="checkbox">'
-						+ '</span>'
-						+ '<input type="text" class="form-control" style="background-color: white;" value="'+results[i].name+'" readonly>'
+						+ '<div class="input-group">'
+							+ '<span class="input-group-addon">'
+								+ '<input type="checkbox">'
+							+ '</span>'
+							+ '<div class="contact col-lg-8"><input type="text" class="form-control" style="background-color: white;" value="'+results[i].name+'" readonly /></div>'
+						
+							+ '<div class="radio col-lg-2">'
+							+ '<label><input type="radio" checked="checked" value="SMS" name="option'+i+'" id="option-sms">SMS</label>'
+							+ '</div>'
+							+ '<div class="radio col-lg-2">'
+							+ '<label><input type="radio" value="Call" name="option'+i+'" id="option-call">Call</label>'
+							+ '</div>'
+							
 						+ '</div>';
 
 				$("#recipients").append(item);
@@ -254,6 +249,7 @@
 			for (i = 0; i < $("[type=checkbox]").length; i++) {
 				if ($("[type=checkbox]")[i].checked /* && !$("[type=checkbox]")[i].disabled */) {
 					console.log(recipients[i]);
+					recipients[i].notification = $('input:radio[name ="option'+i+'"]:checked').val(),
 					data.push(recipients[i]);
 				}
 			}
@@ -265,7 +261,6 @@
 					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
 					//fileURL : $('#ddlFiles').val(),
 					fileURL : $('#ddlFiles option:selected').text(),
-					notification : $("input:radio[name ='notification-option']:checked").val(),
 					recipients : data
 				};
 

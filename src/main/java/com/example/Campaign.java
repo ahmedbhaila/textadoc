@@ -7,14 +7,7 @@ public class Campaign {
 	protected String fileURL;
 	protected String startDate;
 	protected String name;
-	protected String notification;
 	
-	public String getNotification() {
-		return notification;
-	}
-	public void setNotification(String notification) {
-		this.notification = notification;
-	}
 	public String getName() {
 		return name;
 	}
