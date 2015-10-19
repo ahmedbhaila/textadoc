@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,9 @@ public class TextADocController {
 	
 	@Autowired
 	BoxService boxService;
+	
+	@Autowired
+	PubNubService pubnubService;
 	
 	@RequestMapping("/textadoc/recipients")
 	@ResponseBody
@@ -121,10 +126,10 @@ public class TextADocController {
 		return boxService.getFiles();
 	}
 	
-	@RequestMapping("/textadoc/file/{file:.+}")
+	@RequestMapping("/textadoc/{campaign}/file/{file:.+}")
 	@ResponseBody
-	public FileSystemResource getFile(@PathVariable("file") String file) throws Exception {
-		dropBox.downloadFile(file);
+	public FileSystemResource getFile(@PathVariable("campaign") String campaign, @PathVariable("file") String file) throws Exception {
+		textDocService.downloadFile(campaign, file);
 		return new FileSystemResource(new File(file));
 	}
 	
@@ -132,6 +137,29 @@ public class TextADocController {
 	@ResponseBody
 	public String testVoiceCall() {
 		whispirService.sendVoiceCall("17732304340", "TextADoc local");
+		return "true";
+	}
+	
+	@RequestMapping("/textadoc/updateticker") 
+	@ResponseBody
+	public String updateTicker() throws Exception {
+		JSONObject val = new JSONObject();
+		val.put("total_sent", "1");
+		pubnubService.publishMessage(val, "total_sent");
+		
+		val = new JSONObject();
+		val.put("total_downloaded", "1");
+		pubnubService.publishMessage(val, "total_downloaded");
+		
+		JSONObject eon = new JSONObject();
+		
+		JSONObject val1 = new JSONObject();
+		val1.put("data", 80);
+		eon.put("eon", val1);
+		
+		
+		pubnubService.publishMessage(eon, "total_downloaded_percent");
+		
 		return "true";
 	}
 	

@@ -1,7 +1,6 @@
 package com.example;
 
 import java.net.URI;
-import java.util.Locale;
 
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,9 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 
 import com.dropbox.core.DbxAppInfo;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.DbxWebAuth;
-import com.dropbox.core.DbxWebAuthNoRedirect;
+import com.pubnub.api.Pubnub;
 
 @SpringBootApplication
 public class TextADocApplication {
@@ -37,6 +34,12 @@ public class TextADocApplication {
     
     @Value("")
     String redirectUrl;
+    
+    @Value("${pubnub.subscribe.key}")
+	String pubNubSubscribeKey;
+	
+	@Value("${pubnub.publish.key}")
+	String pubNubPublishKey;
     
     
     @Bean
@@ -111,5 +114,15 @@ public class TextADocApplication {
 	public BoxService boxService() {
 		return new BoxService();
 	}
-
+	
+	@Bean
+	public PubNubService pubnubService() {
+		return new PubNubService();
+	}
+	
+	@Bean
+	public Pubnub pubNub() {
+		Pubnub pubnub = new Pubnub(pubNubSubscribeKey, pubNubPublishKey);
+		return pubnub;
+	}
 }

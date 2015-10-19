@@ -9,6 +9,11 @@
 
 <link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css"></link>
 <script src="js/jquery.datetimepicker.full.min.js"></script>
+<script src="https://cdn.pubnub.com/pubnub.js"></script>
+<!-- <script type="text/javascript" src="http://pubnub.github.io/eon/lib/eon-chart.js"></script>  -->
+
+<script type="text/javascript" src="http://pubnub.github.io/eon/v/eon/0.0.9/eon.js"></script>
+<link type="text/css" rel="stylesheet" href="http://pubnub.github.io/eon/v/eon/0.0.9/eon.css" />
 
 
 <!-- Latest compiled and minified CSS -->
@@ -20,6 +25,9 @@
 
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<link rel="stylesheet" href="http://github.hubspot.com/odometer/themes/odometer-theme-car.css" />
+<script src="http://github.hubspot.com/odometer/odometer.js"></script>
 
 
 <title>Text A Doc</title>
@@ -132,6 +140,16 @@
 					</div>
 				</div>
 			</div>
+			<div class="col-lg-5">
+				<div id="active_campaign">Current Campaign: None. Currently, no campaigns are active</div><br/><br/>
+				<div>Messages Sent: &nbsp;&nbsp;<div class="odometer odometer_sent" id="campaign_messages_sent"></div></div><br/><br/>
+				<div>Files downloaded: &nbsp;&nbsp;<div class="odometer odometer_down" id="campaign_messages_downloaded"></div></div><br/><br/>
+				<div id="chart">No Poll Data yet</div>
+			</div>
+		</div>
+		
+		<div id="row">
+			
 		</div>
 	</div>
 		<footer class="footer">
@@ -148,7 +166,9 @@
 	var autocomplete;
 	var monuments_desc_id = 0;
 	
-	$('#text-date').datetimepicker(); 
+	$('#text-date').datetimepicker({
+		showMinutes: true
+	});
 	
 	
 	function getDropboxFiles() {
@@ -232,7 +252,7 @@
 					name : $('#text-campaign-name').val(),
 					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
 					//fileURL : $('#ddlFiles').val(),
-					fileURL : $('#ddlFiles option:selected').text();
+					fileURL : $('#ddlFiles option:selected').text(),
 					recipients : data
 				};
 				
@@ -260,6 +280,90 @@
 	
 </script>
 
+<script>
+
+	var pubnub = PUBNUB.init({
+		publish_key : 'pub-c-8d096ba1-aa07-435b-badb-5c5d65686626',
+		subscribe_key : 'sub-c-b7b1860c-6198-11e5-88ff-02ee2ddab7fe'
+	});
+	
+	pubnub.subscribe({
+	    channel : "total_sent",
+	    message : function(message,env,ch,timer,magic_ch){
+	      console.log(
+	      "Message Received." + '<br>' +
+	      "Channel: " + ch + '<br>' +
+	      "Message: " + JSON.stringify(message)  + '<br>' +
+	      "Raw Envelope: " + JSON.stringify(env) + '<br>' +
+	      "Magic Channel: " + JSON.stringify(magic_ch)
+	    )
+	      $('.odometer_sent').html(message.total_sent);	
+	    },
+	})
+	
+	pubnub.subscribe({
+	    channel : "total_downloaded",
+	    message : function(message,env,ch,timer,magic_ch){
+	      console.log(
+	      "Message Received." + '<br>' +
+	      "Channel: " + ch + '<br>' +
+	      "Message: " + JSON.stringify(message)  + '<br>' +
+	      "Raw Envelope: " + JSON.stringify(env) + '<br>' +
+	      "Magic Channel: " + JSON.stringify(magic_ch)
+	    )
+	      $('.odometer_down').html(message.total_downloaded);	
+	    },
+	})
+	
+	//total_downloaded
+	
+	
+	eon.chart({
+		channel : "total_downloaded_percent",
+		pubnub: pubnub,
+		generate : {
+			bindto : '#chart',
+			data : {
+				type : 'gauge',
+			},
+			gauge : {
+				min : 0,
+				max : 100
+			},
+			color : {
+				pattern : [ '#FF0000', '#F6C600', '#60B044' ],
+				threshold : {
+					values : [ 30, 60, 90 ]
+				}
+			}
+		}
+	});
+	/*
+	eon.chart({
+        pubnub: pubnub,
+        channel: 'total_downloaded_percent',
+        generate: {
+          bindto: '#chart',
+          data: {
+            type: 'gauge'
+          }
+        }
+      });
+	
+	setInterval(function(){
+
+      pubnub.publish({
+        channel: 'total_downloaded_percent',
+        message: {
+          eon: {
+            'Austin': Math.floor(Math.random() * 99)
+          }
+        }
+      });
+
+    }, 2000);*/
+	
+</script>
 
 
 </body>
