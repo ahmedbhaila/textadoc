@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -53,28 +54,45 @@ public class TextDocService {
 	@Autowired
 	DropboxService dropboxService;
 	
-	
+	@Autowired
+	PubNubService pubnubService;
 	
 	
 	public void setDocToSend(String url) {
 		redisTemplate.opsForValue().set(DOC_KEY, url);
 	}
 	
-	public void sendDocumentNotification(String number, String name, String pin) {
+	public void sendDocumentNotification(String campaign, String number, String name, String pin) throws Exception {
 		String message = messageBody.replace(NAME, name);
 		message = messageBody.replace(PIN, pin);
 		
 		whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, message);
+		
+		// increment score for sent
+		redisTemplate.opsForValue().increment(campaign + ":sent", 1);
+		
+		// send pubnub notification
+		JSONObject val = new JSONObject();
+		val.put("total_sent", String.valueOf(redisTemplate.opsForValue().get(campaign + ":sent")));
+		pubnubService.publishMessage(val, "total_sent");
+		
 	}
 	
 	public void setupCampaign(Campaign campaign) throws Exception {
+		
+		// delete old score
+		redisTemplate.delete(campaign.getName() + ":sent");
+		redisTemplate.delete(campaign.getName() + ":downloaded");
 		
 		String campaignName = campaign.getName();
 		
 		// set document url for this campaign
 		
 		//redisTemplate.opsForValue().set(campaignName + ":url", dropboxService.getFileLink(campaign.getFileURL()));
-		redisTemplate.opsForValue().set(campaignName + ":url", hostUrl.replace(FILENAME,campaign.getFileURL()));
+		String url = hostUrl.replace(FILENAME,campaign.getFileURL());
+		url = url.replace(CAMPAIGN, campaign.getName());
+		
+		redisTemplate.opsForValue().set(campaignName + ":url", url);
 		
 		// generate PIN for each recipient
 		campaign.getRecipients().forEach(r -> r.setPin(generatePin()));
@@ -118,7 +136,9 @@ public class TextDocService {
 	}
 	
 	protected void beginCampaign(Campaign campaign) {
-		//campaign.getRecipients().forEach(r -> sendDocumentNotification(r.getNumber(), r.getName(), r.getPin()));
+		//campaign.getRecipients().forEach(r -> sendDocumentNotification(campaign.getName(), r.getNumber(), r.getName(), r.getPin()));
+		
+	
 		
 		// mark sent to true
 		String currentCampaign = (String) redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
@@ -168,18 +188,38 @@ public class TextDocService {
 		// get current campaign
 		String currentCampaign = redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
 		
-		// check pin for this recipient
-		String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
-		if(recipientPin.equals(pin)) {
-			
-			// pin is a match: send document link
-			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
-					urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+		// check for voice call 
+		if(message.getResponseMessage().getChannel().equals("Voice")){
+			// check for response == 2
+			if(pin.equals("2")) {
+				// pin is a match: send document link
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
+						urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+			}
+			else {
+				// send error message to this user
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+			}
 		}
-		else {
-			// send error message to this user
-			whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+		else{
+			// this is a text message source
+			// check pin for this recipient
+			String recipientPin = (String)redisTemplate.opsForHash().get(currentCampaign + ":recipient:" + phone, "pin");
+			if(recipientPin.equals(pin)) {
+				
+				// pin is a match: send document link
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, 
+						urlBody.replace(URL, redisTemplate.opsForValue().get(currentCampaign + ":url")));
+			}
+			else {
+				// send error message to this user
+				whispirService.sendSMS(phone, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, null, errorBody);
+			}
 		}
+		
+		
+		
+		
 	}
 	
 	public void scheduleTask(String date, String campaign) {
@@ -194,5 +234,29 @@ public class TextDocService {
 				beginCampaign(campaign);
 			}
 		}, dateTime.toDate());
+	}
+	
+	public void downloadFile(String campaign, String file) throws Exception {
+		dropboxService.downloadFile(file);
+		
+		// increment score for sent
+		redisTemplate.opsForValue().increment(campaign + ":downloaded", 1);
+
+		// send pubnub notification
+		JSONObject val = new JSONObject();
+		int downloaded = Integer.valueOf(redisTemplate.opsForValue().get(campaign + ":downladed"));
+		val.put("total_downloaded", downloaded);
+		pubnubService.publishMessage(val, "total_downloaded");
+		
+		// calculate downloaded so far
+		int total = redisTemplate.keys(campaign + ":recipient:*").size();
+		double percent = downloaded/total * 100;
+		
+		JSONObject eon = new JSONObject();
+		val = new JSONObject();
+		val.put("data", percent);
+		eon.put("eon", val);		
+		pubnubService.publishMessage(eon, "total_downloaded_percent");
+		
 	}
 }

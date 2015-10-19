@@ -77,6 +77,12 @@
 			<artifactId>box-java-sdk</artifactId>
 			<version>1.1.0</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.pubnub</groupId>
+			<artifactId>pubnub</artifactId>
+			<version>3.7.5</version>
+		</dependency>
 
 
 
