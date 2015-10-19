@@ -73,7 +73,8 @@
 		<nav class="navbar navbar-default">
 			<div class="container-fluid">
 				<div class="navbar-header">
-					<span class="active"><a href="admin.html" class="navbar-brand">Share A Doc</a></span>
+					<span class="active"><a href="admin.html"
+						class="navbar-brand">Share A Doc</a></span>
 				</div>
 
 				<div class="collapse navbar-collapse">
@@ -88,166 +89,167 @@
 
 
 	<!-- Begin page content -->
-    <div class="container">
+	<div class="container">
 		<div class="row">
 			<div class="col-lg-6">
 				<div class="well bs-component">
 					<div class="form-horizontal">
 
 						<div class="form-group">
-							<label class="col-lg-4 control-label" for="text-campaign-name">User
-								Name</label>
+							<label class="col-lg-4 control-label" for="text-campaign-name">User Name</label>
 							<div class="col-lg-8">
-								<input name="text-campaign-name" id="text-campaign-name"
-									type="text" placeholder="Username" class="form-control">
+								<input name="text-campaign-name" id="text-campaign-name" type="text" placeholder="Username" class="form-control">
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-lg-4 control-label" for="text-campaign-name">Campaign
-								Name</label>
+							<label class="col-lg-4 control-label" for="text-campaign-name">Campaign Name</label>
 							<div class="col-lg-8">
-								<input name="text-campaign-name" id="text-campaign-name"
-									type="text" class="form-control" placeholder="Username"
-									class="form-control">
+								<input name="text-campaign-name" id="text-campaign-name" type="text" class="form-control" placeholder="Username" class="form-control">
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-lg-4 control-label" for="text-date">Schedule
-								Time</label>
+							<label class="col-lg-4 control-label" for="text-date">Schedule Time</label>
 							<div class="col-lg-8">
-								<input name="text-date" id="text-date" type="text"
-									class="form-control" placeholder="Schedule Time"
-									class="form-control">
+								<input name="text-date" id="text-date" type="text" class="form-control" placeholder="Schedule Time" class="form-control">
 							</div>
 						</div>
 
 						<div class="form-group">
-							<label class="col-lg-4 control-label" for="ddlFiles">File
-								URL</label>
+							<label class="col-lg-4 control-label" for="ddlFiles">File URL</label>
 							<div class="col-lg-8">
-								<select name="ddlFiles" id="ddlFiles" class="form-control">
-
-								</select>
+								<select name="ddlFiles" id="ddlFiles" class="form-control"></select>
 							</div>
 						</div>
 
+
+
+
 						<div class="form-group">
-							<div class='bs-example col-lg-offset-2' id="recipients"></div>
-	
+							<label class="col-lg-4 control-label">Radios</label>
 							<div class="col-lg-8">
+								<div class="radio">
+									<label><input type="radio" checked="checked" value="SMS" name="notification-option" id="option-sms">SMS</label>
+								</div>
+								<div class="radio">
+									<label><input type="radio" value="Call" name="notification-option" id="option-call">Call</label>
+								</div>
+							</div>
 						</div>
-												
+
+
+
+
 						<div class="form-group">
-                    <div class="col-lg-6 col-lg-offset-4">
-                      <button id="tag" class="btn btn-primary">Create Campaign</button>
-                    </div>
-                  </div>
-                  
-                  
-						
+							<div class='bs-example col-lg-offset-4' id="recipients"></div>
 						</div>
+
+						<div class="form-group">
+							<div class="col-lg-6 col-lg-offset-4">
+								<button id="tag" class="btn btn-primary">Create Campaign</button>
+							</div>
+						</div>
+
+
+
 					</div>
 				</div>
 			</div>
 			<div class="col-lg-5">
-				<div id="active_campaign">Current Campaign: None. Currently, no campaigns are active</div><br/><br/>
-				<div>Messages Sent: &nbsp;&nbsp;<div class="odometer odometer_sent" id="campaign_messages_sent"></div></div><br/><br/>
-				<div>Files downloaded: &nbsp;&nbsp;<div class="odometer odometer_down" id="campaign_messages_downloaded"></div></div><br/><br/>
+				<div id="active_campaign">Current Campaign: None. Currently, no campaigns are active</div>
+				<br />
+				<br />
+				<div> Messages Sent: &nbsp;&nbsp;
+					<div class="odometer odometer_sent" id="campaign_messages_sent"></div>
+				</div>
+				<br />
+				<br />
+				<div> Files Downloaded: &nbsp;&nbsp;
+					<div class="odometer odometer_down" id="campaign_messages_downloaded"></div>
+				</div>
+				<br />
+				<br />
 				<div id="chart">No Poll Data yet</div>
 			</div>
 		</div>
-		
-		<div id="row">
-			
-		</div>
 	</div>
-		<footer class="footer">
-      <div class="container">
-        <p class="text-muted"></p>
-      </div>
-    </footer>
-		
+
+	<div id="row"></div>
+
+	<footer class="footer">
+		<div class="container">
+			<p class="text-muted"></p>
+		</div>
+	</footer>
 
 
-<script type="text/javascript">
-	
-	var recipients = [];
-	var autocomplete;
-	var monuments_desc_id = 0;
-	
-	$('#text-date').datetimepicker({
-		showMinutes: true
-	});
-	
-	
-	function getDropboxFiles() {
-		var url = "/textadoc/dropbox/files";
-		$.get(url, function(data) {
-			console.log(data);
-			
-			$.each(data, function(fileName, key) {
-			    var option = new Option(key, fileName);
-			    $('#ddlFiles').append($(option));
+
+	<script type="text/javascript">
+		var recipients = [];
+		var autocomplete;
+		var monuments_desc_id = 0;
+
+		$('#text-date').datetimepicker({
+			showMinutes : true
+		});
+
+		function getDropboxFiles() {
+			var url = "/textadoc/dropbox/files";
+			$.get(url, function(data) {
+				console.log(data);
+
+				$.each(data, function(fileName, key) {
+					var option = new Option(key, fileName);
+					$('#ddlFiles').append($(option));
+				});
+
+			}).always(function() {
+
 			});
-			
-			
-			
 
-		})
-		.always(function() {
-			 
-		});
-		
-	}
-	
-	function getRecipients() {
-		var url = "/textadoc/recipients";
-		$.get(url, function(data) {
-			console.log(data);
-			recipients = data;
-			callback(data)
-		})
-		.always(function() {
-			 
-		});
-		
-	}
-
-	function callback(results) {
-		console.log(results.length);
-		$("#recipients").html('');
-		for (var i = 0; i < results.length; i++) {			
-			//var item = 
-			//		'<div> <label><input type="checkbox" name="checkbox[]" />'+results[i].name+'</label></div>';
-			
-			//var item = '<li class="list-group-item"><input type="checkbox" name="checkbox[]" />'+results[i].name+'</li>';
-			
-			var item = ''+
-				'<div class="input-group">'+
-			      '<span class="input-group-addon">'+
-			        '<input type="checkbox">'+
-			      '</span>'+
-			      '<input type="text" class="form-control" style="background-color: white;" value="'+results[i].name+'" readonly>'+
-			    '</div>';
-			    
-			$("#recipients").append(item);
 		}
-		
-	}
-	
-	
-	$(document).ready(function() {
-		//getDropboxFiles();
-		//getRecipients();
-	});
-	
-		
-		
-		
-		$("#tag").click(function(){
-			
+
+		function getRecipients() {
+			var url = "/textadoc/recipients";
+			$.get(url, function(data) {
+				console.log(data);
+				recipients = data;
+				callback(data)
+			}).always(function() {
+
+			});
+
+		}
+
+		function callback(results) {
+			console.log(results.length);
+			$("#recipients").html('');
+			for (var i = 0; i < results.length; i++) {
+				//var item = 
+				//		'<div> <label><input type="checkbox" name="checkbox[]" />'+results[i].name+'</label></div>';
+
+				//var item = '<li class="list-group-item"><input type="checkbox" name="checkbox[]" />'+results[i].name+'</li>';
+
+				var item = ''
+						+ '<div class="input-group col-lg-offset-4 col-lg-8">'
+						+ '<span class="input-group-addon">'
+						+ '<input type="checkbox">'
+						+ '</span>'
+						+ '<input type="text" class="form-control" style="background-color: white;" value="'+results[i].name+'" readonly>'
+						+ '</div>';
+
+				$("#recipients").append(item);
+			}
+
+		}
+
+		$(document).ready(function() {
+			getDropboxFiles();
+			getRecipients();
+		});
+
+		$("#tag").click(function() {
 			var data = [];
 			for (i = 0; i < $("[type=checkbox]").length; i++) {
 				if ($("[type=checkbox]")[i].checked /* && !$("[type=checkbox]")[i].disabled */) {
@@ -255,41 +257,44 @@
 					data.push(recipients[i]);
 				}
 			}
-			
-			if(data.length > 0)
-			{
-				
-				var campaign = {					
+
+			if (data.length > 0) {
+
+				var campaign = {
 					name : $('#text-campaign-name').val(),
 					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
 					//fileURL : $('#ddlFiles').val(),
 					fileURL : $('#ddlFiles option:selected').text(),
+					notification : $("input:radio[name ='notification-option']:checked").val(),
 					recipients : data
 				};
-				
-				$.ajax({
-					  type: "POST",
-					  url: "/textadoc/campaign",
-					  contentType: "application/json; charset=utf-8",
-					  dataType: "json",
-					  data: JSON.stringify(campaign),
-					  
-					  
-					})
-					.success( function(response){
-						  console.log(response);
-						  					 
-					})
-					.always(function(response) {
-						console.log(response);					
-					});
+
+				$.ajax(
+					{
+						type : "POST",
+						url : "/textadoc/campaign",
+						contentType : "application/json; charset=utf-8",
+						dataType : "json",
+						data : JSON
+								.stringify(campaign),
+
+					}).success(function(response) {
+					console.log(response);
+
+				}).always(function(response) {
+					console.log(response);
+					if(response.status === 200){
+						alert("Campaign created Successfully !!!");
+					}
+				});
 			}
-			
+			else{
+				alert("Please select recipients !!!");
+			}
 			return false;
 
 		});
-	
-</script>
+	</script>
 
 <script>
 
