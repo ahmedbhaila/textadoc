@@ -21,6 +21,9 @@ public class TextDocService {
 	//private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TourGuideCallback test";
 	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TextADoc local";
 	
+	private static final String CAMPAIGN_NAME_CHANNEL = "current_campaign";
+	
+	
 	private static final String NAME = "{name}";
 	private static final String URL = "{url}";
 	private static final String PIN = "{pin}";
@@ -62,11 +65,15 @@ public class TextDocService {
 		redisTemplate.opsForValue().set(DOC_KEY, url);
 	}
 	
-	public void sendDocumentNotification(String campaign, String number, String name, String pin) throws Exception {
-		String message = messageBody.replace(NAME, name);
-		message = messageBody.replace(PIN, pin);
-		
-		whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, message);
+	public void sendDocumentNotification(String campaign, String number, String name, String pin, String notificationType) throws Exception {
+		if(notificationType.equals("SMS")) {
+			String message = messageBody.replace(NAME, name);
+			message = messageBody.replace(PIN, pin);
+			whispirService.sendSMS(number, DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID, message);
+		}
+		else {
+			whispirService.sendVoiceCall(number, DOC_NOTIFICATION_MESSAGE_CALLBACK_ID);
+		}
 		
 		// increment score for sent
 		redisTemplate.opsForValue().increment(campaign + ":sent", 1);
@@ -107,6 +114,7 @@ public class TextDocService {
 					redisTemplate.opsForHash().put(recipientKey, "retrieved", "false");
 					redisTemplate.opsForHash().put(recipientKey, "sent", "false");
 					redisTemplate.opsForHash().put(recipientKey, "phone", r.getNumber());
+					redisTemplate.opsForHash().put(recipientKey, "notification", r.getNotification());
 				}
 		);
 		
@@ -135,17 +143,19 @@ public class TextDocService {
 		
 	}
 	
-	protected void beginCampaign(Campaign campaign) {
+	protected void beginCampaign(Campaign campaign) throws Exception {
+		// notify new campaign
+		JSONObject campaignName = new JSONObject();
+		campaignName.put("current_campaign", campaign.getName());
+		pubnubService.publishMessage(campaignName, CAMPAIGN_NAME_CHANNEL);
 		//campaign.getRecipients().forEach(r -> sendDocumentNotification(campaign.getName(), r.getNumber(), r.getName(), r.getPin()));
-		
-	
 		
 		// mark sent to true
 		String currentCampaign = (String) redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
 		campaign.getRecipients().forEach(r -> redisTemplate.opsForHash().put(currentCampaign + ":" + r.getNumber(), "sent", "true"));
 	}
 	
-	public void beginCampaign(String campaign) {
+	public void beginCampaign(String campaign) throws Exception {
 		// set current campaign to this one
 		redisTemplate.opsForValue().set(CURRENT_CAMPAIGN, campaign);
 		
@@ -230,8 +240,12 @@ public class TextDocService {
 			@Override
 			public void run() {
 				System.out.println("I was called"); // for testing, remove when done
-				
-				beginCampaign(campaign);
+				try{
+					beginCampaign(campaign);
+				}
+				catch(Exception e) {
+					System.err.println(e.getMessage());
+				}
 			}
 		}, dateTime.toDate());
 	}
@@ -258,5 +272,9 @@ public class TextDocService {
 		eon.put("eon", val);		
 		pubnubService.publishMessage(eon, "total_downloaded_percent");
 		
+	}
+	
+	public String getDropboxAuthUrl() {
+		return dropboxService.getAuthUrl();
 	}
 }
