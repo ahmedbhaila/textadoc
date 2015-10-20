@@ -86,6 +86,7 @@
 					<ul class="nav navbar-nav">
 						<li><a href="#">Campaign Status</a></li>
 						<li><a href="#">History</a></li>
+						<li><a href="/textadoc/dropbox/auth">Dropbox Auth</a></li>
 					</ul>
 				</div>
 			</div>
@@ -103,7 +104,7 @@
 						<div class="form-group">
 							<label class="col-lg-4 control-label" for="text-campaign-name">User Name</label>
 							<div class="col-lg-8">
-								<input name="text-campaign-name" id="text-campaign-name" type="text" placeholder="Username" class="form-control">
+								<input name="text-campaign-name-blah" id="text-campaign-name-blah" type="text" placeholder="Username" class="form-control">
 							</div>
 						</div>
 
@@ -144,15 +145,16 @@
 				</div>
 			</div>
 			<div class="col-lg-5">
-				<div id="active_campaign">Current Campaign: None. Currently, no campaigns are active</div>
+				<div id="active_campaign"><b>Current Campaign</b>: 
+					<div class="current_campaign">None. Currently, no campaigns are active</div></div>
 				<br />
 				<br />
-				<div> Messages Sent: &nbsp;&nbsp;
+				<div> <b>Messages Sent</b>: &nbsp;&nbsp;
 					<div class="odometer odometer_sent" id="campaign_messages_sent"></div>
 				</div>
 				<br />
 				<br />
-				<div> Files Downloaded: &nbsp;&nbsp;
+				<div><b>Files Downloaded</b>: &nbsp;&nbsp;
 					<div class="odometer odometer_down" id="campaign_messages_downloaded"></div>
 				</div>
 				<br />
@@ -303,6 +305,21 @@
 		publish_key : 'pub-c-8d096ba1-aa07-435b-badb-5c5d65686626',
 		subscribe_key : 'sub-c-b7b1860c-6198-11e5-88ff-02ee2ddab7fe'
 	});
+	
+	
+	pubnub.subscribe({
+	    channel : "current_campaign",
+	    message : function(message,env,ch,timer,magic_ch){
+	      console.log(
+	      "Message Received." + '<br>' +
+	      "Channel: " + ch + '<br>' +
+	      "Message: " + JSON.stringify(message)  + '<br>' +
+	      "Raw Envelope: " + JSON.stringify(env) + '<br>' +
+	      "Magic Channel: " + JSON.stringify(magic_ch)
+	    )
+	      $('.current_campaign').html(message.current_campaign);	
+	    },
+	})
 	
 	pubnub.subscribe({
 	    channel : "total_sent",

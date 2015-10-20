@@ -7,6 +7,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -50,7 +51,7 @@ public class TextADocController {
 	
 	@RequestMapping(value = "/textadoc/campaign/{campaign}/begin")
 	@ResponseStatus(value = HttpStatus.OK)
-	public void beginCampaign(@PathVariable("campaign") String campaign) {
+	public void beginCampaign(@PathVariable("campaign") String campaign) throws Exception {
 		textDocService.beginCampaign(campaign);
 	}
 	
@@ -98,11 +99,17 @@ public class TextADocController {
 		
 	}
 	
+	@RequestMapping("/textadoc/dropbox/auth")
+	//@ResponseBody
+	public String dropboxAuth() {
+		return "redirect:" + textDocService.getDropboxAuthUrl();
+	}
+	
 	@RequestMapping(value="/textadoc/dropbox/callback")
-	@ResponseBody
-	public void handleDropboxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
+	public String handleDropboxCallback(@RequestParam Map<String,String> allRequestParams) throws Exception {
 		//allRequestParams.forEach((k,v) -> System.out.println("k" + k + ":" + v));
 		dropBox.handleCallback(allRequestParams);
+		return "redirect:/admin.html";
 		//return dropBox.getListings();
 	}
 	
