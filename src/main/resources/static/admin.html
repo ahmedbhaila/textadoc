@@ -255,10 +255,16 @@
 			}
 
 			if (data.length > 0) {
-
+				
+				var scheduleTime = "";
+				if($('#text-date').val() != "")
+				{					
+					scheduleTime = new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
+				}
+				
 				var campaign = {
 					name : $('#text-campaign-name').val(),
-					startDate : new Date($('#text-date').val()).toISOString(), //$('#text-date').val(),
+					startDate : scheduleTime,
 					//fileURL : $('#ddlFiles').val(),
 					fileURL : $('#ddlFiles option:selected').text(),
 					recipients : data
