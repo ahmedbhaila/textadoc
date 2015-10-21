@@ -8,6 +8,9 @@ public class Campaign {
 	protected String startDate;
 	protected String name;
 	
+	private String userName;
+	private String email;
+	
 	public String getName() {
 		return name;
 	}
@@ -31,5 +34,17 @@ public class Campaign {
 	}
 	public void setFileURL(String fileURL) {
 		this.fileURL = fileURL;
+	}
+	protected String getEmail() {
+		return email;
+	}
+	protected void setEmail(String email) {
+		this.email = email;
+	}
+	protected String getUserName() {
+		return userName;
+	}
+	protected void setUserName(String userName) {
+		this.userName = userName;
 	}
 }
