@@ -31,12 +31,20 @@ public class WhispirService {
 	@Value("${whispir.message.template.name}")
 	String messageTemplateName;
 	
+	@Value("${whispir.email.sent.status.body}")
+	String sentStatusBody;
+	
+	@Value("${whispir.email.downloaded.status.body}")
+	String downloadedStatusBody;
+	
+	private static final String MIME_TYPE = "text/html";
+	
 	
 	@Autowired
 	RestTemplate restTemplate;
 	
 	private static final String WHISPIR_API_URL = "https://api.whispir.com/messages?apikey={api_key}";
-	private static final String WHISPIR_API_CONTACTS_URL = "https://api.whispir.com/contacts?apikey={api_key}&fields=firstName,lastName,workMobilePhone1";	
+	private static final String WHISPIR_API_CONTACTS_URL = "https://api.whispir.com/contacts?apikey={api_key}&fields=firstName,lastName,workMobilePhone1";
 	
 	public Campaign getCampaign() {
 		// for testing : dummy recipient
@@ -68,13 +76,18 @@ public class WhispirService {
 		List<Recipient> recps = new ArrayList<Recipient>();
 		
 		if(response.getStatusCode().equals(HttpStatus.OK)){
-			Recipient r = new Recipient();
-			String responseBody = response.getBody();
-			r.setName((String)((JSONArray)JsonPath.read(responseBody, "$..firstName")).get(0) + " "
-					+ (String)((JSONArray)JsonPath.read(responseBody, "$..lastName")).get(0));
-			r.setNumber((String)((JSONArray)JsonPath.read(responseBody, "$..workMobilePhone1")).get(0));
 			
-			recps.add(r);
+			String responseBody = response.getBody();
+			int contactSize = ((JSONArray)((JSONArray)JsonPath.read(responseBody, "$..contacts")).get(0)).size();
+			for(int i = 0; i < contactSize; i ++) {
+				Recipient r = new Recipient();
+				r.setName((String)((JSONArray)JsonPath.read(responseBody, "$..firstName")).get(i) + " "
+						+ (String)((JSONArray)JsonPath.read(responseBody, "$..lastName")).get(i));
+				r.setNumber((String)((JSONArray)JsonPath.read(responseBody, "$..workMobilePhone1")).get(i));
+				
+				recps.add(r);
+			}
+			
 			
 			System.out.println("Whispir response is " + response.getBody());
 		}
@@ -133,6 +146,34 @@ public class WhispirService {
 		if(content.equals("1")) {
 			// user wants to subscribe to alerts
 		}
+	}
+	
+	public void sendSentMail(String to, String emailSubject) {
+		WhispirEmailMessage message = new WhispirEmailMessage();
+		message.setSubject(emailSubject);
+		message.setTo(to);
+		message.setEmail(new Email(sentStatusBody, MIME_TYPE));
+		
+		sendEmail(message);
+	}
+	
+	public void sendDownloadedMail(String to, String emailSubject) {
+		WhispirEmailMessage message = new WhispirEmailMessage();
+		message.setSubject(emailSubject);
+		message.setTo(to);
+		message.setEmail(new Email(downloadedStatusBody, MIME_TYPE));
+		
+		sendEmail(message);
+	}
+	
+	public void sendEmail(WhispirEmailMessage message) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Content-Type", "application/vnd.whispir.message-v1+json");
+		headers.set("Authorization", "Basic " + authUser);
+		
+		HttpEntity<WhispirEmailMessage> entity = new HttpEntity<WhispirEmailMessage>(message, headers);
+		ResponseEntity<String> response = restTemplate.exchange(WHISPIR_API_URL, HttpMethod.POST, entity, String.class, apiKey);
+		System.out.println("Whispir response is " + response.getBody());
 	}
 	
 	

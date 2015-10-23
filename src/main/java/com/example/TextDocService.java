@@ -19,7 +19,7 @@ public class TextDocService {
 	private static final String DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID = "6EB29D0028104507";
 	
 	//private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TourGuideCallback test";
-	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "TextADoc local";
+	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "Share a Doc - local 2";
 	
 	private static final String CAMPAIGN_NAME_CHANNEL = "current_campaign";
 	
@@ -48,6 +48,9 @@ public class TextDocService {
 	@Value("${host.url}")
 	String hostUrl;
 	
+	@Value("${whispir.email.subject}")
+	String emailSubject;
+	
 	@Autowired
 	WhispirService whispirService;
 	
@@ -65,7 +68,7 @@ public class TextDocService {
 		redisTemplate.opsForValue().set(DOC_KEY, url);
 	}
 	
-	public void sendDocumentNotification(String campaign, String number, String name, String pin, String notificationType) throws Exception {
+	public void sendDocumentNotification(String campaign, String number, String name, String pin, String notificationType)   {
 		if(notificationType.equals("SMS")) {
 			String message = messageBody.replace(NAME, name);
 			message = messageBody.replace(PIN, pin);
@@ -78,10 +81,15 @@ public class TextDocService {
 		// increment score for sent
 		redisTemplate.opsForValue().increment(campaign + ":sent", 1);
 		
-		// send pubnub notification
-		JSONObject val = new JSONObject();
-		val.put("total_sent", String.valueOf(redisTemplate.opsForValue().get(campaign + ":sent")));
-		pubnubService.publishMessage(val, "total_sent");
+		try{
+			// send pubnub notification
+			JSONObject val = new JSONObject();
+			val.put("total_sent", String.valueOf(redisTemplate.opsForValue().get(campaign + ":sent")));
+			pubnubService.publishMessage(val, "total_sent");
+		}
+		catch(Exception e) {
+			System.err.println(e.getMessage());
+		}
 		
 	}
 	
@@ -100,6 +108,7 @@ public class TextDocService {
 		url = url.replace(CAMPAIGN, campaign.getName());
 		
 		redisTemplate.opsForValue().set(campaignName + ":url", url);
+		redisTemplate.opsForHash().put(campaignName, "email", campaign.getEmail());
 		
 		// generate PIN for each recipient
 		campaign.getRecipients().forEach(r -> r.setPin(generatePin()));
@@ -148,11 +157,14 @@ public class TextDocService {
 		JSONObject campaignName = new JSONObject();
 		campaignName.put("current_campaign", campaign.getName());
 		pubnubService.publishMessage(campaignName, CAMPAIGN_NAME_CHANNEL);
-		//campaign.getRecipients().forEach(r -> sendDocumentNotification(campaign.getName(), r.getNumber(), r.getName(), r.getPin()));
+		campaign.getRecipients().forEach(r -> sendDocumentNotification(campaign.getName(), r.getNumber(), r.getName(), r.getPin(), r.getNotification()));
 		
 		// mark sent to true
 		String currentCampaign = (String) redisTemplate.opsForValue().get(CURRENT_CAMPAIGN);
 		campaign.getRecipients().forEach(r -> redisTemplate.opsForHash().put(currentCampaign + ":" + r.getNumber(), "sent", "true"));
+		
+		// send email to admin
+		whispirService.sendSentMail(campaign.getEmail(), emailSubject.replace(CAMPAIGN, currentCampaign));
 	}
 	
 	public void beginCampaign(String campaign) throws Exception {
@@ -255,16 +267,22 @@ public class TextDocService {
 		
 		// increment score for sent
 		redisTemplate.opsForValue().increment(campaign + ":downloaded", 1);
-
+		
 		// send pubnub notification
 		JSONObject val = new JSONObject();
-		int downloaded = Integer.valueOf(redisTemplate.opsForValue().get(campaign + ":downladed"));
+		int downloaded = Integer.valueOf(redisTemplate.opsForValue().get(campaign + ":downloaded"));
 		val.put("total_downloaded", downloaded);
 		pubnubService.publishMessage(val, "total_downloaded");
 		
 		// calculate downloaded so far
 		int total = redisTemplate.keys(campaign + ":recipient:*").size();
 		double percent = downloaded/total * 100;
+		percent = percent > 100.0 ? percent = 100.0 : percent;
+		
+		if(percent == 100.0) {
+			// all recipients have downloaded files. Send email to admin
+			whispirService.sendDownloadedMail((String)redisTemplate.opsForHash().get(campaign, "email"), emailSubject.replace(CAMPAIGN, campaign));
+		}
 		
 		JSONObject eon = new JSONObject();
 		val = new JSONObject();

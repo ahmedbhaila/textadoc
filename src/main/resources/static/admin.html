@@ -85,7 +85,7 @@
 				<div class="collapse navbar-collapse">
 					<ul class="nav navbar-nav">
 						<li><a href="#">Campaign Status</a></li>
-						<li><a href="#">History</a></li>
+<!-- 						<li><a href="#">History</a></li> -->
 						<li><a href="/textadoc/dropbox/auth">Dropbox Auth</a></li>
 					</ul>
 				</div>
@@ -101,10 +101,18 @@
 				<div class="well bs-component">
 					<div class="form-horizontal">
 
-						<div class="form-group">
+						<!--  <div class="form-group">
 							<label class="col-lg-4 control-label" for="text-user-name">User Name</label>
 							<div class="col-lg-8">
 								<input required name="text-user-name" id="text-user-name" type="text" placeholder="Username" class="form-control">
+							</div>
+						</div>
+						 -->
+						 
+						<div class="form-group">
+							<label class="col-lg-4 control-label" for="text-campaign-name">Campaign Name</label>
+							<div class="col-lg-8">
+								<input required name="text-campaign-name" id="text-campaign-name" type="text" class="form-control" placeholder="Campaign Name" class="form-control">
 							</div>
 						</div>
 						
@@ -115,12 +123,7 @@
 							</div>
 						</div>
 
-						<div class="form-group">
-							<label class="col-lg-4 control-label" for="text-campaign-name">Campaign Name</label>
-							<div class="col-lg-8">
-								<input required name="text-campaign-name" id="text-campaign-name" type="text" class="form-control" placeholder="Username" class="form-control">
-							</div>
-						</div>
+						
 
 						<div class="form-group">
 							<label class="col-lg-4 control-label" for="text-date">Schedule Time</label>
@@ -296,7 +299,7 @@
 				}).always(function(response) {
 					console.log(response);
 					if(response.status === 200){
-						alert("Campaign created Successfully !!!");
+						//alert("Campaign created Successfully !!!");
 					}
 				});
 			}

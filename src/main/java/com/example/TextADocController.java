@@ -170,4 +170,11 @@ public class TextADocController {
 		return "true";
 	}
 	
+	@RequestMapping("/textadoc/email")
+	@ResponseBody
+	public String sendEmail(@RequestParam("email") String email) {
+		whispirService.sendSentMail(email, "Test Me");
+		return "true";
+	}
+	
 }
