@@ -190,6 +190,7 @@ public class TextDocService {
 			recp.setPin((String)redisTemplate.opsForHash().get(k, "pin"));
 			recp.setRetrieved(Boolean.valueOf((String)redisTemplate.opsForHash().get(k, "retrieved")));
 			recp.setSent(Boolean.valueOf((String)redisTemplate.opsForHash().get(k, "sent")));
+			recp.setNotification((String)redisTemplate.opsForHash().get(k, "notification"));
 			
 			recipients.add(recp);
 			
