@@ -45,13 +45,27 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-solr</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.1</version>
 		</dependency>
+
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-solr</artifactId>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.8.2</version>
 		</dependency>
+
+
+
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.boot</groupId> -->
+		<!-- <artifactId>spring-boot-starter-data-solr</artifactId> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.boot</groupId> -->
+		<!-- <artifactId>spring-boot-starter-data-solr</artifactId> -->
+		<!-- </dependency> -->
 
 		<dependency>
 			<groupId>commons-httpclient</groupId>
@@ -59,12 +73,12 @@
 			<version>3.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>
-				spring-boot-starter-data-elasticsearch
-			</artifactId>
-		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.springframework.boot</groupId> -->
+		<!-- <artifactId> -->
+		<!-- spring-boot-starter-data-elasticsearch -->
+		<!-- </artifactId> -->
+		<!-- </dependency> -->
 
 		<dependency>
 			<groupId>com.dropbox.core</groupId>
@@ -77,7 +91,7 @@
 			<artifactId>box-java-sdk</artifactId>
 			<version>1.1.0</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>com.pubnub</groupId>
 			<artifactId>pubnub</artifactId>
@@ -112,8 +126,8 @@
 						<artifactId>spring-boot-maven-plugin</artifactId>
 					</plugin>
 				</plugins>
-				</build>
-			</profile>
-		</profiles>
-		
+			</build>
+		</profile>
+	</profiles>
+
 </project>
