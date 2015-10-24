@@ -97,5 +97,23 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>openshift</id>
+			<properties>
+				<maven.compiler.executable>/etc/alternatives/java_sdk_1.8.0/bin/javac</maven.compiler.executable>
+				<maven.compiler.fork>true</maven.compiler.fork>
+			</properties>
 
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.springframework.boot</groupId>
+						<artifactId>spring-boot-maven-plugin</artifactId>
+					</plugin>
+				</plugins>
+				</build>
+			</profile>
+		</profiles>
+		
 </project>
