@@ -16,9 +16,9 @@ public class TextDocService {
 	
 	private static final String CURRENT_CAMPAIGN = "campaign:current";
 	private static final String DOC_KEY = "doc:current";
-	private static final String DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID = "6EB29D0028104507";
+	//private static final String DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID = "6EB29D0028104507";
 	
-	private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "Share a Doc - Heroku Callback";
+	//private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "Share a Doc - Heroku Callback";
 	//private static final String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID = "Share a Doc - local 2";
 	
 	private static final String CAMPAIGN_NAME_CHANNEL = "current_campaign";
@@ -50,6 +50,12 @@ public class TextDocService {
 	
 	@Value("${whispir.email.subject}")
 	String emailSubject;
+	
+	@Value("${whispir.message.template.id}")
+	String DOC_NOTIFICATION_MESSAGE_CALLBACK_ID;
+	
+	@Value("${whispir.notification.template.id}")
+	String DOC_NOTIFICATION_MESSAGE_TEMPLATE_ID;
 	
 	@Autowired
 	WhispirService whispirService;

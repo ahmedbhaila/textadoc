@@ -1,0 +1,13 @@
+#!/bin/sh
+
+#Creating callback
+curl -v -X POST --data '{"name" : "Share a Doc - Application Callback", "url" : "https://<YOUR_HOST>:<HOST_PORT>/textadoc/whispir/callback", "auth" : { "type" : "querystring", "key" : "mykey" }, "contentType" : "json", "email" : "mail@whispir.com", "callbacks" : { "reply" : "enabled", "undeliverable" : "enabled" } }' -H"Authorization: Basic <YOUR_AUTH_TOKEN>" -H"Content-Type: application/vnd.whispir.api-callback-v1+json" https://api.whispir.com/callbacks?apikey=<YOUR_API_KEY>
+
+# Create a response rule - used by voice template - use responseTemplateId in your voice template
+curl -v -X POST -H"Authorization: Basic <AUTH_KEY>" -H"Content-Type: application/vnd.whispir.api-responserule-v1+json" https://api.whispir.com/responserules?apikey=<YOUR_API_KEY> --data '{ "name" : "Share a Doc IVR Response", "description" : "", "responseTemplatePatterns" : { "responseTemplatePattern" : [ { "name" : "Yes Rule", "textPrompt" : "YES", "voicePrompt" : "1", "spokenVoicePrompt" : "to receive link to file", "pattern" : "exactmatch", "colour" : "#00947d" } ] } }'
+
+# Create a voice template
+curl -v -X POST --data '{ "messageTemplateName": "Share a Doc - Voice Template with response", "subject": "Share a document", "body": "Sample Test body", "responseTemplateId": "<YOUR_RESPONSE_TEMPLATE_ID>", "email": {},"voice" : {"header" : "This is the introduction of the voice call", "body" : "This is body of the message", "footer" : "This is the footer of the message","type" : "ConfCall:, ConfAccountNo:, ConfPinNo:, ConfModPinNo:, Pin:"},"web" : {} }'-H"Authorization: Basic <AUTH_KEY>" -H"Content-Type: application/vnd.whispir.api-template-v1+json" https://api.whispir.com/templates?apikey=<YOUR_API_KEY>
+
+# Create a text template 
+curl -v -X POST --data '{ "messageTemplateName": "Share a Doc - Text Template", "messageTemplateDescription": "Template for Share A doc text message", "subject" : "Share a doc", "body" : "Test Body for text message", "email" : {}, "voice" : {}, "web" : {}}' -H"Authorization: Basic <AUTH_KEY>" -H"Content-Type: application/vnd.whispir.api-template-v1+json" https://api.whispir.com/templates?apikey=<YOUR_API_KEY>
